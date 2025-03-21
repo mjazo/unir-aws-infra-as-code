@@ -1,9 +1,3 @@
-
-resource "azurerm_resource_group" "rg" {
-  location = var.resource_group_location
-  name     = "rg-unir-cp2"
-}
-
 # Generate random text
 resource "random_id" "random_id" {
   keepers = {

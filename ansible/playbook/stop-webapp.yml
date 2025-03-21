@@ -1,0 +1,9 @@
+- name: "Playbook para detener el contnedor podman dentro de Azure VM"
+  hosts: azure_vm
+  gather_facts: yes
+
+  tasks:
+    - name: "Detener el contenedor"
+      containers.podman.podman_container:
+        name: cp2_app_vm
+        state: absent

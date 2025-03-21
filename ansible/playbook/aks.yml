@@ -1,0 +1,21 @@
+- name: 'Despliegue de aplicación en AKS'
+  hosts: localhost
+  vars_files:
+    - ../vars/aks.yml
+
+  tasks:
+
+    - name: 'Crear el namespace de trabajo'
+      kubernetes.core.k8s:
+        kind: Namespace
+        name: "{{ k8s_namespace }}"
+        state: present
+        wait: yes
+
+    - name: 'Crear Deployments y servicios de la aplicación'
+      kubernetes.core.k8s:
+        state: present
+        src: "{{ dir }}/{{ file }}"
+        kubeconfig: ~/.kube/config
+        context: "{{ k8s_cluster_name }}"
+        apply: yes

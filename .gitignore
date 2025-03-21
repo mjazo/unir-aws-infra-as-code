@@ -42,3 +42,4 @@ terraform.rc
 
 **/main.tfplan
 **/main.destroy.tfplan
+aks/secret.txt

@@ -1,0 +1,131 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "{{ application.backend.name }}"
+  namespace: "{{ k8s_namespace }}"
+  labels:
+    app: "{{ application.backend.label }}"
+spec:
+  replicas: {{ application.backend.replicas }}
+  selector:
+    matchLabels:
+      app: "{{ application.backend.label }}"
+  template:
+    metadata:
+      labels:
+        app: "{{ application.backend.label }}"
+    spec:
+      nodeSelector:
+        "kubernetes.io/os": linux
+      containers:
+        - name: "{{ application.backend.label }}"
+          image: "{{ application.backend.image }}"
+          imagePullPolicy: "Always"
+          env:
+          - name: ALLOW_EMPTY_PASSWORD
+            value: "yes"
+          resources:
+            requests:
+              cpu: "{{ application.backend.resource.cpu }}"
+              memory: "{{ application.backend.resource.memory }}"
+            limits:
+              cpu: "{{ application.backend.limit.cpu }}"
+              memory: "{{ application.backend.limit.memory }}"
+          ports:
+            - containerPort: {{ application.backend.port }}
+              name: redis
+          volumeMounts:
+              - name: "{{ application.backend.label }}-storage"
+                mountPath: /data
+      volumes:
+        - name: "{{ application.backend.label }}-storage"
+          persistentVolumeClaim:
+            claimName: "{{ application.backend.label }}-pvc"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: "{{ application.backend.name }}-srv"
+  namespace: "{{ k8s_namespace }}"
+spec:
+  ports:
+  - port: {{ application.backend.port }}
+    targetPort: {{ application.backend.port }}
+  selector:
+    app: "{{ application.backend.label }}"
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: "{{ application.backend.label }}-pv"
+  namespace: "{{ k8s_namespace }}"
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: standard
+  hostPath:
+    path: "/mnt/data/{{ application.backend.label }}"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: "{{ application.backend.label }}-pvc"
+  namespace: "{{ k8s_namespace }}"
+spec:
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: standard
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "{{ application.frontend.name }}"
+  namespace: "{{ k8s_namespace }}"
+spec:
+  replicas: {{ application.frontend.replicas }}
+  selector:
+    matchLabels:
+      app: "{{ application.frontend.label }}"
+  template:
+    metadata:
+      labels:
+        app: "{{ application.frontend.label }}"
+    spec:
+      nodeSelector:
+        "kubernetes.io/os": linux
+      containers:
+        - name: "{{ application.frontend.label }}"
+          image: "{{ application.frontend.image }}"
+          imagePullPolicy: "Always"
+          resources:
+            requests:
+              cpu: "{{ application.frontend.resource.cpu }}"
+              memory: "{{ application.frontend.resource.memory }}"
+            limits:
+              cpu: "{{ application.frontend.limit.cpu }}"
+              memory: "{{ application.frontend.limit.memory }}"
+          ports:
+            - containerPort: {{ application.frontend.port }}
+          env:
+            - name: REDIS
+              value: "{{ application.backend.label }}-srv"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: "{{ application.frontend.label }}-srv"
+  namespace: "{{ k8s_namespace }}"
+spec:
+  type: LoadBalancer
+  ports:
+  - port: {{ application.frontend.port }}
+    targetPort: {{ application.frontend.port }}
+  selector:
+    app: "{{ application.frontend.label }}"

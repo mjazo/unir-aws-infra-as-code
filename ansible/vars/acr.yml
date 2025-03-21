@@ -1,0 +1,21 @@
+image:
+  backend:
+    image: docker.io/bitnami/redis
+    name: ms/redis
+    tag: 7.4
+  frontend:
+    image: docker.io/suhuruli/azure-vote-front
+    name: app/azure-vote-front
+    tag: latest
+  application:
+    image: localhost/custom-app
+    name: app/custom-app
+    tag: latest
+  proxy:
+    image: docker.io/nginx
+    name: http/nginx
+    tag: latest
+acr:
+  name: terraformcp2.azurecr.io
+  username: terraformCP2
+  tag: casopractico2

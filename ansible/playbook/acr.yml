@@ -1,0 +1,41 @@
+- name: 'Descarga y subido de images a ACR'
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars_files:
+    - ../vars/acr.yml
+
+  tasks:
+    - name: Hacer pull de las imágenes
+      containers.podman.podman_image:
+        name: "{{ item.image }}"
+        tag: "{{ item.tag }}"
+        state: present
+        arch: amd64
+      loop:
+        - { image: "{{ image.backend.image }}", name: "{{ image.backend.name }}", tag: "{{ image.backend.tag }}" }
+        - { image: "{{ image.frontend.image }}", name: "{{ image.frontend.name }}", tag: "{{ image.frontend.tag }}" }
+        - { image: "{{ image.proxy.image }}", name: "{{ image.proxy.name }}", tag: "{{ image.proxy.tag }}" }
+
+
+    - name: Taguear imágenes con el registro privado de Azure
+      containers.podman.podman_tag:
+        image: "{{ item.image }}:{{ item.tag }}"
+        target_names:
+          - "{{ acr.name }}/{{ item.name }}:{{ acr.tag }}"
+      loop:
+        - { image: "{{ image.backend.image }}", name: "{{ image.backend.name }}", tag: "{{ image.backend.tag }}" }
+        - { image: "{{ image.frontend.image }}", name: "{{ image.frontend.name }}", tag: "{{ image.frontend.tag }}" }
+        - { image: "{{ image.proxy.image }}", name: "{{ image.proxy.name }}", tag: "{{ image.proxy.tag }}" }
+        - { image: "{{ image.application.image }}", name: "{{ image.application.name }}", tag: "{{ image.application.tag }}" }
+
+    - name: Hacer push hacia el registro privado de Azure
+      containers.podman.podman_image:
+        name: "{{ acr.name }}/{{ item.name }}"
+        tag: "{{ acr.tag }}"
+        push: true
+      loop:
+        - { name: "{{ image.backend.name }}", tag: "{{ image.backend.tag }}" }
+        - { name: "{{ image.frontend.name }}", tag: "{{ image.frontend.tag }}" }
+        - { image: "{{ image.proxy.image }}", name: "{{ image.proxy.name }}", tag: "{{ image.proxy.tag }}" }
+        - { image: "{{ image.application.image }}", name: "{{ image.application.name }}", tag: "{{ image.application.tag }}" }

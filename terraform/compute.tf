@@ -1,7 +1,7 @@
-data "azurerm_key_vault_secret" "ssh_pub" {
-  name         = "ssh-public-key"
-  key_vault_id = azurerm_key_vault.vault.id
-}
+# data "azurerm_key_vault_secret" "ssh_pub" {
+#   name         = "ssh-public-key"
+#   key_vault_id = azurerm_key_vault.vault.id
+# }
 
 # Create virtual machine
 resource "azurerm_linux_virtual_machine" "vm" {
@@ -25,14 +25,15 @@ resource "azurerm_linux_virtual_machine" "vm" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "22.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts-gen2"
     version   = "latest"
   }
 
   admin_ssh_key {
     username = var.username
-    public_key = data.azurerm_key_vault_secret.ssh_pub.value
+    #public_key = data.azurerm_key_vault_secret.ssh_pub.value
+    public_key = azurerm_ssh_public_key.ssh_terraform.public_key
   }
 
   boot_diagnostics {

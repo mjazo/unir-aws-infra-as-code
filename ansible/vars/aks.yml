@@ -1,0 +1,32 @@
+
+k8s_namespace: "unir"
+k8s_cluster_name: "terraform-aks-unir"
+dir: "/Users/jazo/dev/unir/unir-aws-infra-as-code/aks"
+file: "deployment.yml"
+template: "stateless.j2"
+application:
+  description: "stateless.yaml"
+  backend:
+    name: redis-deployment
+    label: redis
+    image: terraformcp2.azurecr.io/ms/redis:casopractico2
+    replicas: 1
+    resource:
+      cpu: 100m
+      memory: 128Mi
+    limit:
+      cpu: 250m
+      memory: 256Mi
+    port: 6379
+  frontend:
+    name: vote-deployment
+    label: vote
+    image: terraformcp2.azurecr.io/app/azure-vote-front:casopractico2
+    replicas: 1
+    resource:
+      cpu: 100m
+      memory: 128Mi
+    limit:
+      cpu: 250m
+      memory: 256Mi
+    port: 80

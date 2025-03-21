@@ -1,0 +1,46 @@
+- name: Configurar VM de Azure con Podman
+  hosts: azure_vm
+  become: true
+  vars_files:
+    - ../vars/vm.yml
+
+  tasks:
+    - name: Instalar paquetes necesarios
+      package:
+        name:
+          - podman
+        state: present
+
+    - name: Iniciar sesión en Azure Container Registry (ACR)
+      containers.podman.podman_login:
+        username: "{{ acr.username }}"
+        password: "{{ acr.password }}"
+        registry: "{{ acr.registry }}"
+
+    - name: Descargar la imagen de Nginx desde ACR
+      containers.podman.podman_image:
+        name: "{{ image }}"
+        state: present
+
+    - name: Eliminar contenedor previo si existe
+      containers.podman.podman_container:
+        name: cp2_app_vm
+        state: absent
+
+    - name: Ejecutar contenedor Nginx con Podman
+      containers.podman.podman_container:
+        name: cp2_app_vm
+        image: "{{ image }}"
+        state: started
+        restart_policy: always
+        quadlet_file_mode: '0640'
+        ports:
+          - "80:80"
+        # volume:
+        #   - "/opt/nginx:/usr/share/nginx/html:Z"
+
+    - name: Habilitar el servicio Podman para que inicie en el arranque
+      systemd:
+        name: podman
+        enabled: yes
+        state: started

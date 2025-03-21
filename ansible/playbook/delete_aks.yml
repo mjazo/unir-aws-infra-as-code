@@ -1,0 +1,14 @@
+- name: Eliminar Deployment en Kubernetes
+  hosts: localhost
+  gather_facts: no
+  vars_files:
+    - ../vars/aks.yml
+
+  tasks:
+
+    - name: 'Borrar el Deployment en AKS'
+      kubernetes.core.k8s:
+        state: absent
+        src: "{{ dir }}/{{ file }}"
+        kubeconfig: ~/.kube/config
+        context: "{{ k8s_cluster_name }}"
