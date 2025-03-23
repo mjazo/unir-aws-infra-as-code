@@ -35,9 +35,20 @@
         restart_policy: always
         quadlet_file_mode: '0640'
         ports:
-          - "80:80"
-        # volume:
-        #   - "/opt/nginx:/usr/share/nginx/html:Z"
+          - "8080:80"
+
+    - name: Crear archivo de configuración Caddyfile
+      copy:
+        dest: /etc/caddy/Caddyfile
+        content: |
+          unir.jazodev.com {
+            reverse_proxy localhost:8080
+          }
+
+    - name: Habilitar y arrancar el servicio Caddy
+      systemd:
+        name: caddy
+        state: restarted
 
     - name: Habilitar el servicio Podman para que inicie en el arranque
       systemd:
